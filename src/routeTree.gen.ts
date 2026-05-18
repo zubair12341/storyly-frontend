@@ -9,17 +9,56 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminWorkspacesRouteImport } from './routes/admin/workspaces'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AdminStatsRouteImport } from './routes/admin/stats'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppIntegrationRouteImport } from './routes/_app.integration'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
+import { Route as AppCategoriesRouteImport } from './routes/_app.categories'
+import { Route as AppBillingRouteImport } from './routes/_app.billing'
 import { Route as AppApiKeysRouteImport } from './routes/_app.api-keys'
+import { Route as AppAnalyticsRouteImport } from './routes/_app.analytics'
 import { Route as AppStoriesIndexRouteImport } from './routes/_app.stories.index'
+import { Route as AdminWorkspacesIdRouteImport } from './routes/admin/workspaces.$id'
 import { Route as AppStoriesStoryIdRouteImport } from './routes/_app.stories.$storyId'
 
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -31,9 +70,44 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminWorkspacesRoute = AdminWorkspacesRouteImport.update({
+  id: '/workspaces',
+  path: '/workspaces',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminStatsRoute = AdminStatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppIntegrationRoute = AppIntegrationRouteImport.update({
+  id: '/integration',
+  path: '/integration',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppDashboardRoute = AppDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppCategoriesRoute = AppCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBillingRoute = AppBillingRouteImport.update({
+  id: '/billing',
+  path: '/billing',
   getParentRoute: () => AppRoute,
 } as any)
 const AppApiKeysRoute = AppApiKeysRouteImport.update({
@@ -41,10 +115,20 @@ const AppApiKeysRoute = AppApiKeysRouteImport.update({
   path: '/api-keys',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppStoriesIndexRoute = AppStoriesIndexRouteImport.update({
   id: '/stories/',
   path: '/stories/',
   getParentRoute: () => AppRoute,
+} as any)
+const AdminWorkspacesIdRoute = AdminWorkspacesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AdminWorkspacesRoute,
 } as any)
 const AppStoriesStoryIdRoute = AppStoriesStoryIdRouteImport.update({
   id: '/stories/$storyId',
@@ -54,71 +138,195 @@ const AppStoriesStoryIdRoute = AppStoriesStoryIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
+  '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/analytics': typeof AppAnalyticsRoute
   '/api-keys': typeof AppApiKeysRoute
+  '/billing': typeof AppBillingRoute
+  '/categories': typeof AppCategoriesRoute
   '/dashboard': typeof AppDashboardRoute
+  '/integration': typeof AppIntegrationRoute
+  '/settings': typeof AppSettingsRoute
+  '/admin/stats': typeof AdminStatsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/workspaces': typeof AdminWorkspacesRouteWithChildren
   '/stories/$storyId': typeof AppStoriesStoryIdRoute
+  '/admin/workspaces/$id': typeof AdminWorkspacesIdRoute
   '/stories/': typeof AppStoriesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
+  '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/analytics': typeof AppAnalyticsRoute
   '/api-keys': typeof AppApiKeysRoute
+  '/billing': typeof AppBillingRoute
+  '/categories': typeof AppCategoriesRoute
   '/dashboard': typeof AppDashboardRoute
+  '/integration': typeof AppIntegrationRoute
+  '/settings': typeof AppSettingsRoute
+  '/admin/stats': typeof AdminStatsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/workspaces': typeof AdminWorkspacesRouteWithChildren
   '/stories/$storyId': typeof AppStoriesStoryIdRoute
+  '/admin/workspaces/$id': typeof AdminWorkspacesIdRoute
   '/stories': typeof AppStoriesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
+  '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/pricing': typeof PricingRoute
+  '/register': typeof RegisterRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/_app/analytics': typeof AppAnalyticsRoute
   '/_app/api-keys': typeof AppApiKeysRoute
+  '/_app/billing': typeof AppBillingRoute
+  '/_app/categories': typeof AppCategoriesRoute
   '/_app/dashboard': typeof AppDashboardRoute
+  '/_app/integration': typeof AppIntegrationRoute
+  '/_app/settings': typeof AppSettingsRoute
+  '/admin/stats': typeof AdminStatsRoute
+  '/admin/users': typeof AdminUsersRoute
+  '/admin/workspaces': typeof AdminWorkspacesRouteWithChildren
   '/_app/stories/$storyId': typeof AppStoriesStoryIdRoute
+  '/admin/workspaces/$id': typeof AdminWorkspacesIdRoute
   '/_app/stories/': typeof AppStoriesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/forgot-password'
     | '/login'
+    | '/pricing'
+    | '/register'
+    | '/reset-password'
+    | '/analytics'
     | '/api-keys'
+    | '/billing'
+    | '/categories'
     | '/dashboard'
+    | '/integration'
+    | '/settings'
+    | '/admin/stats'
+    | '/admin/users'
+    | '/admin/workspaces'
     | '/stories/$storyId'
+    | '/admin/workspaces/$id'
     | '/stories/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
+    | '/forgot-password'
     | '/login'
+    | '/pricing'
+    | '/register'
+    | '/reset-password'
+    | '/analytics'
     | '/api-keys'
+    | '/billing'
+    | '/categories'
     | '/dashboard'
+    | '/integration'
+    | '/settings'
+    | '/admin/stats'
+    | '/admin/users'
+    | '/admin/workspaces'
     | '/stories/$storyId'
+    | '/admin/workspaces/$id'
     | '/stories'
   id:
     | '__root__'
     | '/'
     | '/_app'
+    | '/admin'
+    | '/forgot-password'
     | '/login'
+    | '/pricing'
+    | '/register'
+    | '/reset-password'
+    | '/_app/analytics'
     | '/_app/api-keys'
+    | '/_app/billing'
+    | '/_app/categories'
     | '/_app/dashboard'
+    | '/_app/integration'
+    | '/_app/settings'
+    | '/admin/stats'
+    | '/admin/users'
+    | '/admin/workspaces'
     | '/_app/stories/$storyId'
+    | '/admin/workspaces/$id'
     | '/_app/stories/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  PricingRoute: typeof PricingRoute
+  RegisterRoute: typeof RegisterRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app': {
@@ -135,11 +343,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/workspaces': {
+      id: '/admin/workspaces'
+      path: '/workspaces'
+      fullPath: '/admin/workspaces'
+      preLoaderRoute: typeof AdminWorkspacesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/stats': {
+      id: '/admin/stats'
+      path: '/stats'
+      fullPath: '/admin/stats'
+      preLoaderRoute: typeof AdminStatsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/integration': {
+      id: '/_app/integration'
+      path: '/integration'
+      fullPath: '/integration'
+      preLoaderRoute: typeof AppIntegrationRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/dashboard': {
       id: '/_app/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/categories': {
+      id: '/_app/categories'
+      path: '/categories'
+      fullPath: '/categories'
+      preLoaderRoute: typeof AppCategoriesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/billing': {
+      id: '/_app/billing'
+      path: '/billing'
+      fullPath: '/billing'
+      preLoaderRoute: typeof AppBillingRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/api-keys': {
@@ -149,12 +406,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppApiKeysRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/analytics': {
+      id: '/_app/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AppAnalyticsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/stories/': {
       id: '/_app/stories/'
       path: '/stories'
       fullPath: '/stories/'
       preLoaderRoute: typeof AppStoriesIndexRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/admin/workspaces/$id': {
+      id: '/admin/workspaces/$id'
+      path: '/$id'
+      fullPath: '/admin/workspaces/$id'
+      preLoaderRoute: typeof AdminWorkspacesIdRouteImport
+      parentRoute: typeof AdminWorkspacesRoute
     }
     '/_app/stories/$storyId': {
       id: '/_app/stories/$storyId'
@@ -167,25 +438,66 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppApiKeysRoute: typeof AppApiKeysRoute
+  AppBillingRoute: typeof AppBillingRoute
+  AppCategoriesRoute: typeof AppCategoriesRoute
   AppDashboardRoute: typeof AppDashboardRoute
+  AppIntegrationRoute: typeof AppIntegrationRoute
+  AppSettingsRoute: typeof AppSettingsRoute
   AppStoriesStoryIdRoute: typeof AppStoriesStoryIdRoute
   AppStoriesIndexRoute: typeof AppStoriesIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAnalyticsRoute: AppAnalyticsRoute,
   AppApiKeysRoute: AppApiKeysRoute,
+  AppBillingRoute: AppBillingRoute,
+  AppCategoriesRoute: AppCategoriesRoute,
   AppDashboardRoute: AppDashboardRoute,
+  AppIntegrationRoute: AppIntegrationRoute,
+  AppSettingsRoute: AppSettingsRoute,
   AppStoriesStoryIdRoute: AppStoriesStoryIdRoute,
   AppStoriesIndexRoute: AppStoriesIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
+interface AdminWorkspacesRouteChildren {
+  AdminWorkspacesIdRoute: typeof AdminWorkspacesIdRoute
+}
+
+const AdminWorkspacesRouteChildren: AdminWorkspacesRouteChildren = {
+  AdminWorkspacesIdRoute: AdminWorkspacesIdRoute,
+}
+
+const AdminWorkspacesRouteWithChildren = AdminWorkspacesRoute._addFileChildren(
+  AdminWorkspacesRouteChildren,
+)
+
+interface AdminRouteChildren {
+  AdminStatsRoute: typeof AdminStatsRoute
+  AdminUsersRoute: typeof AdminUsersRoute
+  AdminWorkspacesRoute: typeof AdminWorkspacesRouteWithChildren
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminStatsRoute: AdminStatsRoute,
+  AdminUsersRoute: AdminUsersRoute,
+  AdminWorkspacesRoute: AdminWorkspacesRouteWithChildren,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  PricingRoute: PricingRoute,
+  RegisterRoute: RegisterRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

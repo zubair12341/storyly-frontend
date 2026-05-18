@@ -4,6 +4,7 @@ import { authApi, tokenStorage } from "./api";
 interface User {
   email: string;
   name?: string;
+  role: string;
 }
 
 interface AuthContextValue {
@@ -21,7 +22,11 @@ function decodeJwt(token: string): User | null {
   try {
     const payload = token.split(".")[1];
     const decoded = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-    return { email: decoded.email || decoded.sub || "user@app.com", name: decoded.name };
+    return {
+      email: decoded.email || decoded.sub || "user@app.com",
+      name: decoded.name,
+      role: decoded.role ?? "user",
+    };
   } catch {
     return null;
   }
@@ -43,9 +48,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     const res = await authApi.login(email, password);
-    tokenStorage.set(res.token);
-    setToken(res.token);
-    setUser(res.user ?? decodeJwt(res.token) ?? { email });
+    const token = res.access_token;
+
+    if (!token) {
+      console.error("No access_token received from backend", res);
+      return;
+    }
+
+    tokenStorage.set(token);
+    setToken(token);
+
+    // Decode role from JWT; merge with res.user for email/name
+    const decoded = decodeJwt(token);
+    const baseUser = res.user ?? { email };
+    setUser({
+      email: baseUser.email,
+      name: (baseUser as { name?: string }).name,
+      role: decoded?.role ?? "user",
+    });
   };
 
   const logout = () => {

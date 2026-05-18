@@ -2,42 +2,53 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { apiFetch, tokenStorage } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { tokenStorage } from "@/lib/api";
 
-export const Route = createFileRoute("/login")({
-  component: LoginPage,
+export const Route = createFileRoute("/register")({
+  component: RegisterPage,
 });
 
-function LoginPage() {
-  const { login, isAuthenticated, user } = useAuth();
+function RegisterPage() {
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail]       = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading]   = useState(false);
+
+  const [email, setEmail]         = useState("");
+  const [password, setPassword]   = useState("");
+  const [confirm, setConfirm]     = useState("");
+  const [workspace, setWorkspace] = useState("");
+  const [loading, setLoading]     = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate({ to: user?.role === "admin" ? "/admin/stats" : "/dashboard" });
-    }
-  }, [isAuthenticated, user, navigate]);
+    if (isAuthenticated) navigate({ to: "/dashboard" });
+  }, [isAuthenticated, navigate]);
+
+  const validate = () => {
+    if (!email.includes("@"))           { toast.error("Enter a valid email.");            return false; }
+    if (password.length < 6)            { toast.error("Password must be at least 6 characters."); return false; }
+    if (password !== confirm)           { toast.error("Passwords do not match.");          return false; }
+    if (!workspace.trim())              { toast.error("Workspace name is required.");      return false; }
+    return true;
+  };
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     setLoading(true);
     try {
-      await login(email, password);
-      toast.success("Welcome back!");
-      // Read role directly from the JWT since user state updates asynchronously
-      const token = tokenStorage.get();
-      const payload = token ? JSON.parse(atob(token.split(".")[1])) : {};
-      const role = payload.role ?? "user";
-      navigate({ to: role === "admin" ? "/admin/stats" : "/dashboard" });
+      const res = await apiFetch<{ access_token: string }>("/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ email, password, workspaceName: workspace.trim() }),
+      });
+      tokenStorage.set(res.access_token);
+      toast.success("Account created — welcome!");
+      // Hard navigate so AuthProvider re-reads token from storage
+      window.location.href = "/dashboard";
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Login failed.");
+      toast.error(err instanceof Error ? err.message : "Registration failed.");
     } finally {
       setLoading(false);
     }
@@ -45,7 +56,7 @@ function LoginPage() {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background">
-      {/* Left brand panel */}
+      {/* Left brand panel — identical to login */}
       <div
         className="hidden lg:flex flex-col justify-between p-12 text-white relative overflow-hidden"
         style={{ background: "var(--gradient-brand)" }}
@@ -58,10 +69,10 @@ function LoginPage() {
         </div>
         <div className="space-y-4 relative z-10">
           <h1 className="text-4xl font-semibold leading-tight">
-            Beautiful story widgets for your website.
+            Start publishing stories in minutes.
           </h1>
           <p className="text-white/80 text-lg max-w-md">
-            Build, publish and embed Instagram-style stories anywhere. Track engagement and ship fast.
+            Create your free account, embed your first widget, and watch engagement grow.
           </p>
         </div>
         <p className="text-sm text-white/60">© {new Date().getFullYear()} Storywidget Inc.</p>
@@ -83,55 +94,71 @@ function LoginPage() {
           </div>
 
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">Sign in to your account</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">Create your account</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              Enter your credentials to access the dashboard.
+              Free forever. No credit card required.
             </p>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="workspace">Workspace name</Label>
+              <Input
+                id="workspace"
+                type="text"
+                placeholder="Acme Inc."
+                value={workspace}
+                onChange={(e) => setWorkspace(e.target.value)}
+                required
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
                 autoComplete="email"
-                required
+                placeholder="you@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@company.com"
+                required
               />
             </div>
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <Link
-                  to="/forgot-password"
-                  className="text-xs text-muted-foreground hover:text-primary"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <Label htmlFor="password">Password</Label>
               <Input
                 id="password"
                 type="password"
-                autoComplete="current-password"
-                required
+                autoComplete="new-password"
+                placeholder="Min. 6 characters"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                required
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm">Confirm password</Label>
+              <Input
+                id="confirm"
+                type="password"
+                autoComplete="new-password"
+                placeholder="Repeat password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                required
+              />
+            </div>
+
             <Button type="submit" className="w-full" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sign in
+              Create account
             </Button>
           </form>
 
           <p className="text-sm text-center text-muted-foreground">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-primary hover:underline font-medium">
-              Create one free
+            Already have an account?{" "}
+            <Link to="/login" className="text-primary hover:underline font-medium">
+              Sign in
             </Link>
           </p>
         </div>

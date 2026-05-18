@@ -15,9 +15,14 @@ export const Route = createFileRoute("/_app/api-keys")({
   component: ApiKeysPage,
 });
 
-function maskKey(key: string) {
-  if (key.length <= 12) return key;
-  return `${key.slice(0, 6)}${"•".repeat(20)}${key.slice(-4)}`;
+// FIX: show key_prefix (always available) or the full key (only on create)
+function maskKey(k: ApiKey): string {
+  // If the full raw key is present (just created), show it masked
+  if (k.key) {
+    return k.key.length <= 12 ? k.key : `${k.key.slice(0, 6)}${"•".repeat(20)}${k.key.slice(-4)}`;
+  }
+  // Otherwise show the stored prefix + mask
+  return `${k.key_prefix}${"•".repeat(20)}`;
 }
 
 function ApiKeysPage() {
@@ -48,7 +53,7 @@ function ApiKeysPage() {
       setRevealedId(k.id);
       setNewKeyName("");
       setDialogOpen(false);
-      toast.success("API key created");
+      toast.success("API key created — copy it now, it won't be shown again");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed");
     } finally {
@@ -57,7 +62,9 @@ function ApiKeysPage() {
   };
 
   const copy = async (k: ApiKey) => {
-    await navigator.clipboard.writeText(k.key);
+    // FIX: was k.key — use full key if present (just created), else key_prefix
+    const toCopy = k.key ?? k.key_prefix;
+    await navigator.clipboard.writeText(toCopy);
     setCopiedId(k.id);
     toast.success("Copied to clipboard");
     setTimeout(() => setCopiedId(null), 1800);
@@ -124,22 +131,32 @@ function ApiKeysPage() {
                 return (
                   <li key={k.id} className="py-4 flex flex-wrap items-center gap-4 justify-between">
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium">{k.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium">{k.name}</p>
+                        {/* FIX: was no active indicator — backend returns is_active */}
+                        {!k.is_active && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-destructive/10 text-destructive">Inactive</span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2 mt-1">
                         <code className="font-mono text-xs px-2 py-1 rounded bg-muted text-muted-foreground truncate max-w-md">
-                          {revealed ? k.key : maskKey(k.key)}
+                          {/* FIX: was k.key (undefined after list) — use maskKey helper */}
+                          {revealed ? (k.key ?? k.key_prefix) : maskKey(k)}
                         </code>
-                        <button
-                          type="button"
-                          className="text-xs text-primary hover:underline"
-                          onClick={() => setRevealedId(revealed ? null : k.id)}
-                        >
-                          {revealed ? "Hide" : "Reveal"}
-                        </button>
+                        {/* Only allow reveal if we have the full key (just created) */}
+                        {k.key && (
+                          <button
+                            type="button"
+                            className="text-xs text-primary hover:underline"
+                            onClick={() => setRevealedId(revealed ? null : k.id)}
+                          >
+                            {revealed ? "Hide" : "Reveal"}
+                          </button>
+                        )}
                       </div>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Created {new Date(k.createdAt).toLocaleDateString()}
-                        {k.lastUsed && ` · Last used ${new Date(k.lastUsed).toLocaleDateString()}`}
+                        {/* FIX: was k.createdAt (undefined) → k.created_at (snake_case) */}
+                        Created {new Date(k.created_at).toLocaleDateString()}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
