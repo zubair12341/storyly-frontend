@@ -20,10 +20,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminWorkspacesRouteImport } from './routes/admin/workspaces'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminStatsRouteImport } from './routes/admin/stats'
+import { Route as AdminPlansRouteImport } from './routes/admin/plans'
 import { Route as AppSettingsRouteImport } from './routes/_app.settings'
+import { Route as AppResourcesRouteImport } from './routes/_app.resources'
 import { Route as AppIntegrationRouteImport } from './routes/_app.integration'
 import { Route as AppDashboardRouteImport } from './routes/_app.dashboard'
 import { Route as AppCategoriesRouteImport } from './routes/_app.categories'
+import { Route as AppBillingPaymentMethodRouteImport } from './routes/_app.billing-payment-method'
 import { Route as AppBillingRouteImport } from './routes/_app.billing'
 import { Route as AppApiKeysRouteImport } from './routes/_app.api-keys'
 import { Route as AppAnalyticsRouteImport } from './routes/_app.analytics'
@@ -85,9 +88,19 @@ const AdminStatsRoute = AdminStatsRouteImport.update({
   path: '/stats',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminPlansRoute = AdminPlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppResourcesRoute = AppResourcesRouteImport.update({
+  id: '/resources',
+  path: '/resources',
   getParentRoute: () => AppRoute,
 } as any)
 const AppIntegrationRoute = AppIntegrationRouteImport.update({
@@ -103,6 +116,11 @@ const AppDashboardRoute = AppDashboardRouteImport.update({
 const AppCategoriesRoute = AppCategoriesRouteImport.update({
   id: '/categories',
   path: '/categories',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBillingPaymentMethodRoute = AppBillingPaymentMethodRouteImport.update({
+  id: '/billing-payment-method',
+  path: '/billing-payment-method',
   getParentRoute: () => AppRoute,
 } as any)
 const AppBillingRoute = AppBillingRouteImport.update({
@@ -147,10 +165,13 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AppAnalyticsRoute
   '/api-keys': typeof AppApiKeysRoute
   '/billing': typeof AppBillingRoute
+  '/billing-payment-method': typeof AppBillingPaymentMethodRoute
   '/categories': typeof AppCategoriesRoute
   '/dashboard': typeof AppDashboardRoute
   '/integration': typeof AppIntegrationRoute
+  '/resources': typeof AppResourcesRoute
   '/settings': typeof AppSettingsRoute
+  '/admin/plans': typeof AdminPlansRoute
   '/admin/stats': typeof AdminStatsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/workspaces': typeof AdminWorkspacesRouteWithChildren
@@ -169,10 +190,13 @@ export interface FileRoutesByTo {
   '/analytics': typeof AppAnalyticsRoute
   '/api-keys': typeof AppApiKeysRoute
   '/billing': typeof AppBillingRoute
+  '/billing-payment-method': typeof AppBillingPaymentMethodRoute
   '/categories': typeof AppCategoriesRoute
   '/dashboard': typeof AppDashboardRoute
   '/integration': typeof AppIntegrationRoute
+  '/resources': typeof AppResourcesRoute
   '/settings': typeof AppSettingsRoute
+  '/admin/plans': typeof AdminPlansRoute
   '/admin/stats': typeof AdminStatsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/workspaces': typeof AdminWorkspacesRouteWithChildren
@@ -193,10 +217,13 @@ export interface FileRoutesById {
   '/_app/analytics': typeof AppAnalyticsRoute
   '/_app/api-keys': typeof AppApiKeysRoute
   '/_app/billing': typeof AppBillingRoute
+  '/_app/billing-payment-method': typeof AppBillingPaymentMethodRoute
   '/_app/categories': typeof AppCategoriesRoute
   '/_app/dashboard': typeof AppDashboardRoute
   '/_app/integration': typeof AppIntegrationRoute
+  '/_app/resources': typeof AppResourcesRoute
   '/_app/settings': typeof AppSettingsRoute
+  '/admin/plans': typeof AdminPlansRoute
   '/admin/stats': typeof AdminStatsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/workspaces': typeof AdminWorkspacesRouteWithChildren
@@ -217,10 +244,13 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/api-keys'
     | '/billing'
+    | '/billing-payment-method'
     | '/categories'
     | '/dashboard'
     | '/integration'
+    | '/resources'
     | '/settings'
+    | '/admin/plans'
     | '/admin/stats'
     | '/admin/users'
     | '/admin/workspaces'
@@ -239,10 +269,13 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/api-keys'
     | '/billing'
+    | '/billing-payment-method'
     | '/categories'
     | '/dashboard'
     | '/integration'
+    | '/resources'
     | '/settings'
+    | '/admin/plans'
     | '/admin/stats'
     | '/admin/users'
     | '/admin/workspaces'
@@ -262,10 +295,13 @@ export interface FileRouteTypes {
     | '/_app/analytics'
     | '/_app/api-keys'
     | '/_app/billing'
+    | '/_app/billing-payment-method'
     | '/_app/categories'
     | '/_app/dashboard'
     | '/_app/integration'
+    | '/_app/resources'
     | '/_app/settings'
+    | '/admin/plans'
     | '/admin/stats'
     | '/admin/users'
     | '/admin/workspaces'
@@ -364,11 +400,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminStatsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/plans': {
+      id: '/admin/plans'
+      path: '/plans'
+      fullPath: '/admin/plans'
+      preLoaderRoute: typeof AdminPlansRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_app/settings': {
       id: '/_app/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/resources': {
+      id: '/_app/resources'
+      path: '/resources'
+      fullPath: '/resources'
+      preLoaderRoute: typeof AppResourcesRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/integration': {
@@ -390,6 +440,13 @@ declare module '@tanstack/react-router' {
       path: '/categories'
       fullPath: '/categories'
       preLoaderRoute: typeof AppCategoriesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/billing-payment-method': {
+      id: '/_app/billing-payment-method'
+      path: '/billing-payment-method'
+      fullPath: '/billing-payment-method'
+      preLoaderRoute: typeof AppBillingPaymentMethodRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/billing': {
@@ -441,9 +498,11 @@ interface AppRouteChildren {
   AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppApiKeysRoute: typeof AppApiKeysRoute
   AppBillingRoute: typeof AppBillingRoute
+  AppBillingPaymentMethodRoute: typeof AppBillingPaymentMethodRoute
   AppCategoriesRoute: typeof AppCategoriesRoute
   AppDashboardRoute: typeof AppDashboardRoute
   AppIntegrationRoute: typeof AppIntegrationRoute
+  AppResourcesRoute: typeof AppResourcesRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStoriesStoryIdRoute: typeof AppStoriesStoryIdRoute
   AppStoriesIndexRoute: typeof AppStoriesIndexRoute
@@ -453,9 +512,11 @@ const AppRouteChildren: AppRouteChildren = {
   AppAnalyticsRoute: AppAnalyticsRoute,
   AppApiKeysRoute: AppApiKeysRoute,
   AppBillingRoute: AppBillingRoute,
+  AppBillingPaymentMethodRoute: AppBillingPaymentMethodRoute,
   AppCategoriesRoute: AppCategoriesRoute,
   AppDashboardRoute: AppDashboardRoute,
   AppIntegrationRoute: AppIntegrationRoute,
+  AppResourcesRoute: AppResourcesRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStoriesStoryIdRoute: AppStoriesStoryIdRoute,
   AppStoriesIndexRoute: AppStoriesIndexRoute,
@@ -476,12 +537,14 @@ const AdminWorkspacesRouteWithChildren = AdminWorkspacesRoute._addFileChildren(
 )
 
 interface AdminRouteChildren {
+  AdminPlansRoute: typeof AdminPlansRoute
   AdminStatsRoute: typeof AdminStatsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminWorkspacesRoute: typeof AdminWorkspacesRouteWithChildren
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminPlansRoute: AdminPlansRoute,
   AdminStatsRoute: AdminStatsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminWorkspacesRoute: AdminWorkspacesRouteWithChildren,

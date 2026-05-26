@@ -7,9 +7,14 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer,
+} from "recharts";
 import {
   analyticsApi, storiesApi,
-  type AnalyticsSummary, type StoryAnalytics, type Story,
+  type AnalyticsSummary, type StoryAnalytics, type Story, type AnalyticsTimeline,
 } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -55,10 +60,18 @@ interface StoryRow extends Story {
   loadingStats: boolean;
 }
 
+const DAY_OPTIONS = [7, 30, 90] as const;
+type DayOption = typeof DAY_OPTIONS[number];
+
 function AnalyticsPage() {
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null);
   const [rows, setRows] = useState<StoryRow[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Timeline state
+  const [selectedDays, setSelectedDays] = useState<DayOption>(7);
+  const [timeline, setTimeline] = useState<AnalyticsTimeline | null>(null);
+  const [timelineLoading, setTimelineLoading] = useState(true);
 
   const load = async () => {
     setLoading(true);
@@ -99,6 +112,26 @@ function AnalyticsPage() {
 
   useEffect(() => { load(); }, []);
 
+  // Fetch timeline on mount and whenever selectedDays changes
+  useEffect(() => {
+    setTimelineLoading(true);
+    analyticsApi.timeline(selectedDays)
+      .then(setTimeline)
+      .catch(() => setTimeline(null))
+      .finally(() => setTimelineLoading(false));
+  }, [selectedDays]);
+
+  // Convert timeline data into recharts format
+  const chartData = timeline
+    ? timeline.labels.map((date, i) => ({
+        date,
+        story_views: timeline.datasets.story_views[i] ?? 0,
+        cta_clicks:  timeline.datasets.cta_clicks[i]  ?? 0,
+      }))
+    : [];
+
+  const hasChartData = chartData.some((d) => d.story_views > 0 || d.cta_clicks > 0);
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -115,7 +148,89 @@ function AnalyticsPage() {
         </Button>
       </div>
 
-      {/* Summary stat cards */}
+      {/* ── Time-series chart ── */}
+      <Card className="shadow-soft">
+        <CardHeader className="flex flex-row items-center justify-between pb-2 flex-wrap gap-3">
+          <CardTitle className="text-base">Views over time</CardTitle>
+          <div className="flex items-center gap-1">
+            {DAY_OPTIONS.map((d) => (
+              <Button
+                key={d}
+                variant={selectedDays === d ? "default" : "outline"}
+                size="sm"
+                className="h-7 px-3 text-xs"
+                onClick={() => setSelectedDays(d)}
+              >
+                {d} days
+              </Button>
+            ))}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {timelineLoading ? (
+            <div className="space-y-3 py-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-4 w-4/6" />
+            </div>
+          ) : !hasChartData ? (
+            <div className="flex items-center justify-center h-[280px] text-sm text-muted-foreground">
+              No data for this period
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={280}>
+              <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                  tickLine={false}
+                  axisLine={false}
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+                  tickLine={false}
+                  axisLine={false}
+                  allowDecimals={false}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "8px",
+                    fontSize: "12px",
+                  }}
+                />
+                <Legend
+                  wrapperStyle={{ fontSize: "12px", paddingTop: "12px" }}
+                  formatter={(value) =>
+                    value === "story_views" ? "Story Views" : "CTA Clicks"
+                  }
+                />
+                <Line
+                  type="monotone"
+                  dataKey="story_views"
+                  stroke="#6366f1"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="cta_clicks"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* ── Summary stat cards ── */}
       {loading && !summary ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -127,14 +242,14 @@ function AnalyticsPage() {
         </div>
       ) : summary ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard icon={Eye}              label="Story Views"  value={summary.story_views.toLocaleString()} hint="Total story opens" />
-          <StatCard icon={BarChart3}        label="Slide Views"  value={summary.slide_views.toLocaleString()} hint="Across all stories" />
-          <StatCard icon={MousePointerClick} label="CTA Clicks"  value={summary.cta_clicks.toLocaleString()} hint="Total CTA interactions" accent />
-          <StatCard icon={TrendingUp}       label="CTR"          value={pct(summary.ctr)} hint="CTA clicks ÷ story views" accent />
+          <StatCard icon={Eye}               label="Story Views"  value={summary.story_views.toLocaleString()} hint="Total story opens" />
+          <StatCard icon={BarChart3}         label="Slide Views"  value={summary.slide_views.toLocaleString()} hint="Across all stories" />
+          <StatCard icon={MousePointerClick} label="CTA Clicks"   value={summary.cta_clicks.toLocaleString()} hint="Total CTA interactions" accent />
+          <StatCard icon={TrendingUp}        label="CTR"          value={pct(summary.ctr)} hint="CTA clicks ÷ story views" accent />
         </div>
       ) : null}
 
-      {/* Per-story table */}
+      {/* ── Per-story table ── */}
       <Card className="shadow-soft">
         <CardHeader>
           <CardTitle className="text-base">Per-story breakdown</CardTitle>

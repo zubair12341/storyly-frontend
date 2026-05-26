@@ -223,6 +223,11 @@ export const storiesApi = {
       method: "PATCH",
       body: JSON.stringify({ status: "draft" }),
     }),
+
+  duplicate: (id: string) =>
+    apiFetch<Story>(`/stories/${id}/duplicate`, {
+      method: "POST",
+    }),
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -280,12 +285,26 @@ export interface StoryAnalytics {
   completion_rate: number;
 }
 
+export interface AnalyticsTimeline {
+  days: number;
+  labels: string[];
+  datasets: {
+    story_views: number[];
+    cta_clicks: number[];
+  };
+}
+
 export const analyticsApi = {
   summary: () =>
     apiFetch<AnalyticsSummary>("/analytics/summary"),
 
   storyStats: (id: string) =>
     apiFetch<StoryAnalytics>(`/analytics/stories/${id}`),
+
+  timeline: (days?: number) =>
+    apiFetch<AnalyticsTimeline>(
+      `/analytics/timeline?days=${days ?? 7}`
+    ),
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -301,7 +320,7 @@ export interface BillingStatus {
   subscription_status: string | null;
   // null when on free plan — now returned by the backend getStatus()
   stripe_subscription_id: string | null;
-  limits: { maxStories: number; maxMonthlyViews: number };
+  limits: { maxStories: number | null; maxMonthlyViews: number | null; maxAllowedDomains?: number | null };
   current_period_end: string | null;
   cancel_at_period_end: boolean;
 }
@@ -329,6 +348,35 @@ export const billingApi = {
     apiFetch<{ url: string }>("/billing/portal-session", {
       method: "POST",
     }),
+
+  changePlan: (plan: 'pro' | 'business') =>
+    apiFetch<BillingStatus>('/billing/change-plan', {
+      method: 'POST',
+      body: JSON.stringify({ plan }),
+    }),
+
+  cancel: () =>
+    apiFetch<{ success: boolean }>('/billing/cancel', { method: 'POST' }),
+
+  reactivate: () =>
+    apiFetch<{ success: boolean }>('/billing/reactivate', { method: 'POST' }),
+
+  getPaymentMethod: () =>
+    apiFetch<{ brand: string; last4: string; exp_month: number; exp_year: number } | null>(
+      '/billing/payment-method'
+    ),
+
+  createSetupIntent: () =>
+    apiFetch<{ client_secret: string }>('/billing/setup-intent', { method: 'POST' }),
+
+  confirmPaymentMethod: (paymentMethodId: string) =>
+    apiFetch<{ brand: string; last4: string; exp_month: number; exp_year: number } | null>(
+      '/billing/confirm-payment-method',
+      {
+        method: 'POST',
+        body: JSON.stringify({ payment_method_id: paymentMethodId }),
+      }
+    ),
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -416,6 +464,60 @@ export const workspacesApi = {
 // ─────────────────────────────────────────────────────────────────
 //  Admin
 // ─────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────
+//  Public Plans (pricing page — no auth required)
+// ─────────────────────────────────────────────────────────────────
+
+export interface PublicPlanConfig {
+  id: string;
+  plan_id: string;
+  display_name: string;
+  price_monthly: number;     // cents
+  max_stories: number;
+  max_monthly_views: number;
+  max_allowed_domains: number;
+  is_active: boolean;
+  sort_order: number;
+  features: string[];
+}
+
+export const plansApi = {
+  list: () => apiFetch<PublicPlanConfig[]>('/billing/plans'),
+};
+
+// ─────────────────────────────────────────────────────────────────
+//  Plan management admin types
+// ─────────────────────────────────────────────────────────────────
+
+export interface PlanConfig {
+  id: string;
+  plan_id: string;
+  display_name: string;
+  price_monthly: number;        // in cents (e.g. 2900 = $29)
+  stripe_price_id: string | null;
+  max_stories: number;
+  max_monthly_views: number;
+  max_allowed_domains: number;
+  is_active: boolean;
+  sort_order: number;
+  features: string[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CreatePlanPayload {
+  plan_id: string;
+  display_name: string;
+  price_monthly: number;       // cents
+  stripe_price_id?: string | null;
+  max_stories: number;
+  max_monthly_views: number;
+  max_allowed_domains: number;
+  is_active?: boolean;
+  sort_order: number;
+  features: string[];
+}
 
 export interface WorkspaceRow {
   id: string;
@@ -535,4 +637,25 @@ export const adminApi = {
 
   getRevenue: () =>
     apiFetch<RevenueOverview>("/admin/revenue"),
+
+  getPlans: () =>
+    apiFetch<PlanConfig[]>('/admin/plans'),
+
+  updatePlan: (
+    planId: string,
+    data: Partial<Omit<PlanConfig, 'id' | 'plan_id' | 'created_at' | 'updated_at'>>
+  ) =>
+    apiFetch<PlanConfig>(`/admin/plans/${planId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  togglePlan: (planId: string) =>
+    apiFetch<PlanConfig>(`/admin/plans/${planId}/toggle`, { method: 'POST' }),
+
+  createPlan: (data: CreatePlanPayload) =>
+    apiFetch<PlanConfig>('/admin/plans', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };

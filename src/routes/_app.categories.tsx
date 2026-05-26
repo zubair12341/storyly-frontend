@@ -741,7 +741,7 @@ function CategoriesPage() {
                             aria-label="Toggle font settings"
                           >
                             <Type className="h-3.5 w-3.5 mr-1.5" />
-                            Font Settings
+                            Display & Font Settings
                             {fontOpen ? (
                               <ChevronUp className="h-3 w-3 ml-1" />
                             ) : (

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Plus, Search, MoreHorizontal, Trash2, Edit, Eye, BookOpen, Tag } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Trash2, Edit, Eye, BookOpen, Tag, Copy } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,6 +65,16 @@ function StoriesList() {
       toast.success("Story deleted");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed");
+    }
+  };
+
+  const handleDuplicate = async (id: string) => {
+    try {
+      const newStory = await storiesApi.duplicate(id);
+      setStories((prev) => [newStory, ...prev]);
+      toast.success("Story duplicated");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to duplicate");
     }
   };
 
@@ -191,6 +201,9 @@ function StoriesList() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleDuplicate(s.id)}>
+                            <Copy className="h-4 w-4 mr-2" />Duplicate
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => navigate({ to: "/stories/$storyId", params: { storyId: s.id } })}>
                             <Edit className="h-4 w-4 mr-2" />Edit
                           </DropdownMenuItem>
