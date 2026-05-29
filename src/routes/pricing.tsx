@@ -171,6 +171,9 @@ function PublicNav({ isAuthenticated }: AuthProps) {
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">
+          <Link to="/features"   className="nav-link px-3 py-2 rounded-md hover:bg-white/5 transition-colors">Features</Link>
+          <Link to="/use-cases"  className="nav-link px-3 py-2 rounded-md hover:bg-white/5 transition-colors">Use Cases</Link>
+          <Link to="/developers" className="nav-link px-3 py-2 rounded-md hover:bg-white/5 transition-colors">Developers</Link>
           <Link
             to="/pricing"
             className="nav-link px-3 py-2 rounded-md hover:bg-white/5 transition-colors"
