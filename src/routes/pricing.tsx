@@ -134,7 +134,7 @@ function PricingPage() {
           checkoutLoading={checkoutLoading}
           onCheckout={handleCheckout}
         />
-        <ComparisonTableSection />
+        <ComparisonTableSection plans={plans} />
         <FaqSection />
         <CtaBannerSection isAuthenticated={isAuthenticated} />
       </main>
@@ -321,12 +321,20 @@ function PlansSection({
   checkoutLoading,
   onCheckout,
 }: PlansSectionProps) {
+  // Clamp skeleton count to 3 max; expand container for 3+ plans
+  const skeletonCount = 2
+  const colClass =
+    plans.length >= 3
+      ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+      : 'grid-cols-1 md:grid-cols-2'
+  const maxW = plans.length >= 3 ? 'max-w-6xl' : 'max-w-4xl'
+
   return (
     <section className="py-20 px-6" style={{ background: 'var(--hero-bg)' }}>
-      <div className="max-w-4xl mx-auto">
+      <div className={`${maxW} mx-auto`}>
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {[0, 1].map((i) => (
+          <div className={`grid ${colClass} gap-8`}>
+            {Array.from({ length: skeletonCount }).map((_, i) => (
               <div
                 key={i}
                 className="h-96 rounded-2xl animate-pulse"
@@ -335,7 +343,7 @@ function PlansSection({
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className={`grid ${colClass} gap-8`}>
             {plans.map((plan) => {
               const isPro =
                 plan.sort_order === 1 || plan.plan_id === 'pro'
@@ -520,22 +528,42 @@ function PlanCard({
 }
 
 /* ─────────────────────────────────────────────────────────────────────────── */
-/*  COMPARISON TABLE                                                            */
+/*  COMPARISON TABLE — fully dynamic, driven by live plans data                */
 /* ─────────────────────────────────────────────────────────────────────────── */
-const TABLE_ROWS: {
+
+// Derive structured comparison rows from plan data so no hardcoding is needed.
+// As new plans are added to the API they'll appear automatically as columns.
+function buildComparisonRows(plans: PublicPlanConfig[]): {
   feature: string
-  pro: string | boolean
-  business: string | boolean
-}[] = [
-  { feature: 'Stories',          pro: '50',        business: 'Unlimited' },
-  { feature: 'Monthly views',    pro: '50,000',     business: 'Unlimited' },
-  { feature: 'Allowed domains',  pro: '3',          business: '10' },
-  { feature: 'Analytics',        pro: 'Advanced',   business: 'Advanced' },
-  { feature: 'Custom branding',  pro: true,         business: true },
-  { feature: 'API access',       pro: true,         business: true },
-  { feature: 'Priority support', pro: true,         business: true },
-  { feature: 'SLA support',      pro: false,        business: true },
-]
+  values: (string | boolean)[]
+}[] {
+  if (plans.length === 0) return []
+
+  // Collect every unique feature string across all plans (preserving order of first appearance)
+  const allFeatures = Array.from(
+    new Set(plans.flatMap((p) => p.features)),
+  )
+
+  return [
+    {
+      feature: 'Stories',
+      values: plans.map((p) => formatLimit(p.max_stories)),
+    },
+    {
+      feature: 'Monthly views',
+      values: plans.map((p) => formatLimit(p.max_monthly_views)),
+    },
+    {
+      feature: 'Allowed domains',
+      values: plans.map((p) => String(p.max_allowed_domains)),
+    },
+    // One row per unique feature — true if that plan includes it, false otherwise
+    ...allFeatures.map((f) => ({
+      feature: f,
+      values: plans.map((p) => p.features.includes(f)),
+    })),
+  ]
+}
 
 function CellValue({ val }: { val: string | boolean }) {
   if (val === true) {
@@ -551,10 +579,17 @@ function CellValue({ val }: { val: string | boolean }) {
   )
 }
 
-function ComparisonTableSection() {
+function ComparisonTableSection({ plans }: { plans: PublicPlanConfig[] }) {
+  if (plans.length === 0) return null
+
+  const rows = buildComparisonRows(plans)
+  // +1 column for the feature label
+  const totalCols = plans.length + 1
+  const gridTemplate = `1fr ${plans.map(() => '1fr').join(' ')}`
+
   return (
     <section className="py-16 px-6" style={{ background: 'oklch(0.115 0.022 265)' }}>
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center">
           <span className="chip chip-dark mb-4">Compare plans</span>
@@ -568,43 +603,57 @@ function ComparisonTableSection() {
           className="rounded-2xl overflow-hidden border w-full mt-10"
           style={{ borderColor: 'var(--hero-border)' }}
         >
-          {/* Header row */}
+          {/* Header row — Feature label + one column per plan */}
           <div
-            className="grid grid-cols-3 px-6 py-4"
-            style={{ background: 'oklch(0.13 0.020 265)' }}
+            className="px-6 py-4"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: gridTemplate,
+              background: 'oklch(0.13 0.020 265)',
+            }}
           >
-            {['Feature', 'Pro', 'Business'].map((col) => (
+            <span
+              className="text-xs font-semibold uppercase tracking-widest"
+              style={{ color: 'var(--hero-muted)' }}
+            >
+              Feature
+            </span>
+            {plans.map((p) => (
               <span
-                key={col}
-                className="text-xs font-semibold uppercase tracking-widest text-center first:text-left"
+                key={p.id}
+                className="text-xs font-semibold uppercase tracking-widest text-center"
                 style={{ color: 'var(--hero-muted)' }}
               >
-                {col}
+                {p.display_name}
               </span>
             ))}
           </div>
 
           {/* Data rows */}
-          {TABLE_ROWS.map((row, i) => (
+          {rows.map((row, i) => (
             <div
               key={row.feature}
-              className="grid grid-cols-3 px-6 py-4 items-center"
+              className="px-6 py-4 items-center"
               style={{
+                display: 'grid',
+                gridTemplateColumns: gridTemplate,
                 background: i % 2 === 0 ? 'oklch(0.105 0.018 265)' : 'transparent',
               }}
             >
               <span className="text-sm" style={{ color: 'var(--hero-muted)' }}>
                 {row.feature}
               </span>
-              <div className="text-center">
-                <CellValue val={row.pro} />
-              </div>
-              <div className="text-center">
-                <CellValue val={row.business} />
-              </div>
+              {row.values.map((val, j) => (
+                <div key={j} className="text-center">
+                  <CellValue val={val} />
+                </div>
+              ))}
             </div>
           ))}
         </div>
+
+        {/* Column count hint — hidden, just ensures Tailwind purge safety */}
+        <span className="hidden">{totalCols}</span>
       </div>
     </section>
   )
