@@ -66,12 +66,10 @@ function PublicNav({ isAuthenticated }: AuthProps) {
         </Link>
 
         <nav className="hidden md:flex items-center gap-1">
-          <Link
-            to="/pricing"
-            className="nav-link px-3 py-2 rounded-md hover:bg-white/5 transition-colors"
-          >
-            Pricing
-          </Link>
+          <Link to="/features"   className="nav-link px-3 py-2 rounded-md hover:bg-white/5 transition-colors">Features</Link>
+          <Link to="/use-cases"  className="nav-link px-3 py-2 rounded-md hover:bg-white/5 transition-colors">Use Cases</Link>
+          <Link to="/developers" className="nav-link px-3 py-2 rounded-md hover:bg-white/5 transition-colors">Developers</Link>
+          <Link to="/pricing"    className="nav-link px-3 py-2 rounded-md hover:bg-white/5 transition-colors">Pricing</Link>
         </nav>
 
         <div className="flex items-center gap-2.5">
@@ -768,9 +766,12 @@ function PublicFooter() {
               </p>
               <ul className="space-y-2">
                 {[
-                  { to: "/pricing",  label: "Pricing"     },
-                  { to: "/register", label: "Get started" },
-                  { to: "/login",    label: "Sign in"     },
+                  { to: "/features",   label: "Features"    },
+                  { to: "/use-cases",  label: "Use Cases"   },
+                  { to: "/developers", label: "Developers"  },
+                  { to: "/pricing",    label: "Pricing"     },
+                  { to: "/register",   label: "Get started" },
+                  { to: "/login",      label: "Sign in"     },
                 ].map(({ to, label }) => (
                   <li key={to}>
                     <Link

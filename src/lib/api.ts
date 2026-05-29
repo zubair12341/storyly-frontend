@@ -262,6 +262,12 @@ export const apiKeysApi = {
     return result;
   },
 
+  rotate: (name: string) =>
+    apiFetch<ApiKey>("/api-keys/rotate", {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    }),
+
   delete: (id: string) =>
     apiFetch<void>(`/api-keys/${id}`, { method: "DELETE" }),
 };
