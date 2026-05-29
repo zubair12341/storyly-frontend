@@ -122,12 +122,22 @@ function EmbedModal({
       .finally(() => setLoadingKeys(false));
   }, [category]);
 
-  const firstKey    = apiKeys.find((k) => k.is_active) ?? apiKeys[0] ?? null;
-  const sessionKey  = firstKey?.key ?? null;
-  const storedKey   = lastApiKeyStorage.get();
+  const firstKey = apiKeys.find((k) => k.is_active) ?? apiKeys[0] ?? null;
+  // Full key in memory (just created/rotated this session) takes priority
+  const sessionKey = firstKey?.key ?? null;
+  // localStorage fallback — only valid if it matches the current key prefix
+  // This prevents stale keys from a previous rotation being shown
+  const storedKey = (() => {
+    const stored = lastApiKeyStorage.get();
+    if (!stored || !firstKey) return null;
+    // Verify the stored key starts with the current key's prefix
+    // key_prefix is the first 12 chars of the raw key
+    if (!stored.startsWith(firstKey.key_prefix)) return null;
+    return stored;
+  })();
   const resolvedKey = sessionKey ?? storedKey ?? null;
-  const keySource   = sessionKey ? "current" : storedKey ? "stored" : null;
-  const hasFullKey  = !!resolvedKey;
+  const keySource = sessionKey ? "current" : storedKey ? "stored" : null;
+  const hasFullKey = !!resolvedKey;
   const snippet     =
     firstKey && category && resolvedKey
       ? buildEmbedSnippet(resolvedKey, category.slug, API_BASE_URL)

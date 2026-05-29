@@ -262,11 +262,16 @@ export const apiKeysApi = {
     return result;
   },
 
-  rotate: (name: string) =>
-    apiFetch<ApiKey>("/api-keys/rotate", {
+  rotate: async (name: string): Promise<ApiKey> => {
+    const result = await apiFetch<ApiKey>("/api-keys/rotate", {
       method: "POST",
       body: JSON.stringify({ name }),
-    }),
+    });
+    // Store the new full key in localStorage so the embed modal
+    // can use it — same as what create() already does
+    if (result.key) lastApiKeyStorage.set(result.key);
+    return result;
+  },
 
   delete: (id: string) =>
     apiFetch<void>(`/api-keys/${id}`, { method: "DELETE" }),
